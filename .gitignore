@@ -1,0 +1,53 @@
+# ---- Unity generated / regenerable ----
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Asset Store tools
+[Aa]ssets/AssetStoreTools*
+
+# Auto-generated solution / project files
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vs/
+.idea/
+.vscode/
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+*.dmg
+*.ipa
+
+# Crash reports
+sysinfo.txt
+crashlytics-build.properties
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Unity 3D generated meta files for ignored dirs
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
