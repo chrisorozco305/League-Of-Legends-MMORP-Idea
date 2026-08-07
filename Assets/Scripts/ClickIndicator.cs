@@ -1,49 +1,61 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
-/// LoL-style right-click move marker. Draws a shrinking, fading ring on the ground
-/// at the clicked point. Fully procedural - no prefab or material needed.
-/// Attach to any GameObject in the scene.
+/// LoL-style click marker. Draws a shrinking, fading ring on the ground.
+/// Green for move orders, red for attack orders. Fully procedural.
+/// Input is driven by ChampionController / ChampionCombat, not by this script.
 /// </summary>
 public class ClickIndicator : MonoBehaviour
 {
     [Header("Raycast")]
     [SerializeField] Camera cam;
     [SerializeField] float groundHeight = 0f;
-    [SerializeField] bool useColliders = false;      // true = raycast real geometry
+    [SerializeField] bool useColliders = false;
     [SerializeField] LayerMask groundMask = ~0;
 
+    [Header("Colors")]
+    [SerializeField] Color moveColor = new Color(0.2f, 1f, 0.35f);
+    [SerializeField] Color attackColor = new Color(1f, 0.25f, 0.22f);
+
     [Header("Look")]
-    [SerializeField] Color color = new Color(0.2f, 1f, 0.35f);
     [SerializeField] float radius = 0.6f;
     [SerializeField] float startScale = 1.6f;
     [SerializeField] float endScale = 0.55f;
     [SerializeField] float duration = 0.45f;
     [SerializeField] float lineWidth = 0.07f;
     [SerializeField] int segments = 48;
-    [SerializeField] float yOffset = 0.02f;          // lift off the ground to avoid z-fighting
+    [SerializeField] float yOffset = 0.05f;
+
+    public Color MoveColor => moveColor;
+    public Color AttackColor => attackColor;
 
     Transform marker;
     LineRenderer ring;
+    Color current;
     float t = -1f;
 
     void Awake()
     {
         if (!cam) cam = Camera.main;
+        current = moveColor;
         BuildMarker();
     }
 
-    void Update()
-    {
-        Animate();
-    }
+    void Update() => Animate();
 
     // ---------- public API ----------
 
-    /// <summary>Fire the indicator manually (AI orders, ability targeting, tests).</summary>
-    public void Play(Vector3 worldPos)
+    /// <summary>Flash the marker in the move colour (green).</summary>
+    public void PlayMove(Vector3 worldPos) => Play(worldPos, moveColor);
+
+    /// <summary>Flash the marker in the attack colour (red).</summary>
+    public void PlayAttack(Vector3 worldPos) => Play(worldPos, attackColor);
+
+    public void Play(Vector3 worldPos) => Play(worldPos, moveColor);
+
+    public void Play(Vector3 worldPos, Color color)
     {
+        current = color;
         marker.position = worldPos + Vector3.up * yOffset;
         marker.gameObject.SetActive(true);
         t = 0f;
@@ -67,7 +79,6 @@ public class ClickIndicator : MonoBehaviour
             return false;
         }
 
-        // flat math plane - no colliders required
         Plane plane = new Plane(Vector3.up, new Vector3(0f, groundHeight, 0f));
         if (plane.Raycast(ray, out float dist))
         {
@@ -92,15 +103,15 @@ public class ClickIndicator : MonoBehaviour
         ring.widthMultiplier = lineWidth;
         ring.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         ring.receiveShadows = false;
-        ring.alignment = LineAlignment.TransformZ;   // lie flat on the ground
+        ring.alignment = LineAlignment.TransformZ;
 
+        // built in local XY so the 90 degree X rotation lays it flat
         for (int i = 0; i < segments; i++)
         {
             float a = (i / (float)segments) * Mathf.PI * 2f;
             ring.SetPosition(i, new Vector3(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius, 0f));
         }
 
-        // rotate flat so TransformZ alignment faces up
         marker.rotation = Quaternion.Euler(90f, 0f, 0f);
 
         Shader s = Shader.Find("Sprites/Default")
@@ -117,14 +128,12 @@ public class ClickIndicator : MonoBehaviour
 
         t += Time.deltaTime;
         float p = Mathf.Clamp01(t / duration);
-
-        // ease out
-        float e = 1f - Mathf.Pow(1f - p, 3f);
+        float e = 1f - Mathf.Pow(1f - p, 3f);   // ease out
 
         float s = Mathf.Lerp(startScale, endScale, e);
         marker.localScale = new Vector3(s, s, s);
 
-        Color c = color;
+        Color c = current;
         c.a = 1f - e;
         ring.startColor = c;
         ring.endColor = c;
