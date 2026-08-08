@@ -136,7 +136,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8de1c9627a3a06847b86772d33b35009, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
+  maxHealth: 160
+  destroyDelay: 1.5
+  disableCollidersOnDeath: 1
 --- !u!136 &197734072
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -160,6 +162,56 @@ CapsuleCollider:
   m_Height: 1.4730021
   m_Direction: 1
   m_Center: {x: -0.052803278, y: 0.42183682, z: -0.046604335}
+--- !u!195 &197734075
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 197734070}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.6
+  m_Speed: 2.4
+  m_Acceleration: 18
+  avoidancePriority: 50
+  m_AngularSpeed: 480
+  m_StoppingDistance: 2.38
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.4
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &197734076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 197734070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a07102e1e4bf32f42afb8cffbad5c967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
+  aggroRange: 9
+  attackRange: 2.8
+  leashRange: 18
+  damage: 14
+  attacksPerSecond: 0.5
+  windup: 0.5
+  attackDuration: 0.83
+  damageRangeSlack: 1.35
+  moveSpeed: 2.4
+  turnSpeed: 10
+  idleState: IdleBattle
+  moveState: RunFWD
+  attackState: Attack02
+  hitState: GetHit
+  dieState: Die
+  crossFade: 0.1
 --- !u!1 &202813224
 GameObject:
   m_ObjectHideFlags: 0
@@ -1827,6 +1879,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6753617674297473082, guid: 24a0663f813d4beb91fc0c6b1e8fef36, type: 3}
       insertIndex: -1
       addedObject: {fileID: 197734071}
+    - targetCorrespondingSourceObject: {fileID: 6753617674297473082, guid: 24a0663f813d4beb91fc0c6b1e8fef36, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 197734076}
+    - targetCorrespondingSourceObject: {fileID: 6753617674297473082, guid: 24a0663f813d4beb91fc0c6b1e8fef36, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 197734075}
   m_SourcePrefab: {fileID: 100100000, guid: 24a0663f813d4beb91fc0c6b1e8fef36, type: 3}
 --- !u!1 &1453645724
 GameObject:
@@ -2502,6 +2560,8 @@ MonoBehaviour:
   toggleRangeKey: 15
   rangeColor: {r: 0.62, g: 0.88, b: 1, a: 0.95}
   turnSpeed: 20
+  cam: {fileID: 0}
+  targetPickRange: 500
 --- !u!114 &1655069857
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2515,6 +2575,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   maxHealth: 100
+  destroyDelay: 0
+  disableCollidersOnDeath: 1
 --- !u!1 &1668907712 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7153141402127884706, guid: a4ec793513574cd49719c4055b630e2b, type: 3}
@@ -2532,7 +2594,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8de1c9627a3a06847b86772d33b35009, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
+  maxHealth: 70
+  destroyDelay: 1.5
+  disableCollidersOnDeath: 1
 --- !u!136 &1668907716
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2556,6 +2620,56 @@ CapsuleCollider:
   m_Height: 1.0436748
   m_Direction: 1
   m_Center: {x: 0, y: 0.4218374, z: 0}
+--- !u!195 &1668907717
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668907712}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.45
+  m_Speed: 4
+  m_Acceleration: 30
+  avoidancePriority: 50
+  m_AngularSpeed: 720
+  m_StoppingDistance: 1.8700001
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &1668907718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668907712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a07102e1e4bf32f42afb8cffbad5c967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
+  aggroRange: 13
+  attackRange: 2.2
+  leashRange: 24
+  damage: 6
+  attacksPerSecond: 1
+  windup: 0.35
+  attackDuration: 0.83
+  damageRangeSlack: 1.35
+  moveSpeed: 4
+  turnSpeed: 10
+  idleState: IdleBattle
+  moveState: RunFWD
+  attackState: Attack01
+  hitState: GetHit
+  dieState: Die
+  crossFade: 0.1
 --- !u!1 &1674374221
 GameObject:
   m_ObjectHideFlags: 0
@@ -3239,6 +3353,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7153141402127884706, guid: a4ec793513574cd49719c4055b630e2b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1668907715}
+    - targetCorrespondingSourceObject: {fileID: 7153141402127884706, guid: a4ec793513574cd49719c4055b630e2b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1668907718}
+    - targetCorrespondingSourceObject: {fileID: 7153141402127884706, guid: a4ec793513574cd49719c4055b630e2b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1668907717}
   m_SourcePrefab: {fileID: 100100000, guid: a4ec793513574cd49719c4055b630e2b, type: 3}
 --- !u!1 &1913413752
 GameObject:
@@ -3480,6 +3600,8 @@ GameObject:
   - component: {fileID: 1978532769}
   - component: {fileID: 1978532771}
   - component: {fileID: 1978532772}
+  - component: {fileID: 1978532774}
+  - component: {fileID: 1978532773}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -3564,6 +3686,42 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   checkInterval: 0.05
+--- !u!114 &1978532773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1978532768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df7f2710d6b05e049bb0a1e5a8a38b44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChampionHud
+  champion: {fileID: 0}
+  maxMana: 400
+  level: 1
+  championName: CHAMPION
+  panelSize: {x: 660, y: 120}
+  bottomMargin: 14
+--- !u!114 &1978532774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1978532768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73eff1642a36aab4f817d7f9e1460f9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthBarManager
+  barWidth: 130
+  barHeight: 16
+  championHeight: 2.4
+  enemyHeight: 2
+  hpPerSegment: 100
+  rescanInterval: 0.5
 --- !u!1 &2039739669
 GameObject:
   m_ObjectHideFlags: 0

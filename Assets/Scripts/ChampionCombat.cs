@@ -43,6 +43,8 @@ public class ChampionCombat : MonoBehaviour
     bool armed;          // A has been toggled on
 
     public float AttackRange => attackRange;
+    public float Damage => damage;
+    public float AttacksPerSecond => attacksPerSecond;
     public Transform Target => target;
     public bool IsArmed => armed;
 
@@ -104,30 +106,41 @@ public class ChampionCombat : MonoBehaviour
 
         if (!Mouse.current.leftButton.wasPressedThisFrame) return;
 
+        // marker always lands where the cursor actually is, not on the
+        // target's position - ground point under an enemy is a close enough
+        // stand-in for "the spot that was clicked"
+        Vector3 clickPoint = Vector3.zero;
+        bool haveClickPoint = controller != null &&
+            controller.TryGetGroundPoint(Mouse.current.position.ReadValue(), out clickPoint);
+
         // 1. clicked directly on an enemy - that one wins, even if it isn't closest
         Transform picked = PickEnemyUnderCursor();
         if (picked != null)
         {
             target = picked;
-            indicator?.PlayAttack(picked.position);
+            if (haveClickPoint) indicator?.PlayAttack(clickPoint);
             SetArmed(false);
             return;
         }
 
-        // 2. clicked empty ground - fall back to nearest enemy in range
+        // 2. clicked empty ground - fall back to the nearest enemy anywhere;
+        // TickCombat() will chase it into range before firing
         Transform nearest = FindNearest();
         if (nearest != null)
         {
             target = nearest;
-            indicator?.PlayAttack(nearest.position);
+            if (haveClickPoint) indicator?.PlayAttack(clickPoint);
             SetArmed(false);
             return;
         }
 
         // 3. nothing to attack - attack-move to the clicked point, still red
         target = null;
-        if (TryMoveToCursor(out Vector3 dest))
-            indicator?.PlayAttack(dest);
+        if (haveClickPoint)
+        {
+            if (TryMoveToPoint(clickPoint))
+                indicator?.PlayAttack(clickPoint);
+        }
 
         SetArmed(false);
     }
@@ -150,20 +163,13 @@ public class ChampionCombat : MonoBehaviour
         return h.transform;
     }
 
-    /// <summary>Move toward the cursor's ground position. Returns the snapped destination.</summary>
-    bool TryMoveToCursor(out Vector3 dest)
+    /// <summary>Move toward a ground point already snapped to the navmesh. Returns success.</summary>
+    bool TryMoveToPoint(Vector3 point)
     {
-        dest = Vector3.zero;
-        if (controller == null || Mouse.current == null) return false;
-
-        if (!controller.TryGetGroundPoint(Mouse.current.position.ReadValue(), out Vector3 point))
-            return false;
-
         if (!NavMesh.SamplePosition(point, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             return false;
 
         agent.SetDestination(hit.position);
-        dest = hit.position;
         return true;
     }
 
@@ -177,16 +183,21 @@ public class ChampionCombat : MonoBehaviour
         if (h == null || !h.IsAlive) target = null;
     }
 
+    /// <summary>
+    /// Nearest living enemy anywhere on the enemy layer, not just within
+    /// attackRange - clicking empty ground should still pick a chase target,
+    /// same as clicking directly on a distant enemy.
+    /// </summary>
     Transform FindNearest()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, attackRange, enemyMask);
+        Health[] all = FindObjectsByType<Health>(FindObjectsSortMode.None);
         float best = float.MaxValue;
         Transform found = null;
 
-        foreach (var c in hits)
+        foreach (var h in all)
         {
-            var h = c.GetComponentInParent<Health>();
             if (h == null || !h.IsAlive || h.transform == transform) continue;
+            if (((1 << h.gameObject.layer) & enemyMask.value) == 0) continue;
 
             float d = (h.transform.position - transform.position).sqrMagnitude;
             if (d < best) { best = d; found = h.transform; }
