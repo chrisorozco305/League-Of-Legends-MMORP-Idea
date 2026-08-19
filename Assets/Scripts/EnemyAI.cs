@@ -26,6 +26,8 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] float attackRange = 2.4f;
     [Tooltip("Distance from the spawn point at which the enemy gives up and walks home.")]
     [SerializeField] float leashRange = 22f;
+    [Tooltip("Tag identifying the champion to hunt.")]
+    [SerializeField] string playerTag = "Player";
 
     [Header("Attack")]
     [SerializeField] float damage = 8f;
@@ -249,7 +251,10 @@ public class EnemyAI : MonoBehaviour
 
     void AcquireTarget()
     {
-        if (target != null && target.IsAlive) return;
+        // Also drop the target when it stops being the tagged player - swapping
+        // champions moves the tag, and without this check the enemy would keep
+        // hunting the body you just walked away from.
+        if (target != null && target.IsAlive && target.CompareTag(playerTag)) return;
 
         // the champion may not exist yet, or may have died - retry on an
         // interval rather than searching every frame
@@ -257,8 +262,10 @@ public class EnemyAI : MonoBehaviour
         if (retargetTimer > 0f) return;
         retargetTimer = 0.5f;
 
-        var champion = FindFirstObjectByType<ChampionCombat>();
-        target = champion != null ? champion.GetComponent<Health>() : null;
+        // by tag, not by ChampionCombat - a champion that can't fight back is
+        // still a valid thing to chew on
+        var go = GameObject.FindGameObjectWithTag(playerTag);
+        target = go != null ? go.GetComponent<Health>() : null;
     }
 
     // ---------- animation ----------

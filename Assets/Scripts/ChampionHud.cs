@@ -19,6 +19,8 @@ public class ChampionHud : MonoBehaviour
 {
     [Header("Bindings (auto-found if left empty)")]
     [SerializeField] Health champion;
+    [Tooltip("Tag used to find the champion when the field above is empty.")]
+    [SerializeField] string playerTag = "Player";
 
     [Header("Placeholders - no systems behind these yet")]
     [SerializeField] float maxMana = 400f;
@@ -35,6 +37,7 @@ public class ChampionHud : MonoBehaviour
     RectTransform manaFill;
     TextMeshProUGUI hpLabel;
     TextMeshProUGUI manaLabel;
+    TextMeshProUGUI nameLabel;
     TextMeshProUGUI adValue;
     TextMeshProUGUI asValue;
     TextMeshProUGUI rangeValue;
@@ -44,18 +47,31 @@ public class ChampionHud : MonoBehaviour
 
     void Start()
     {
-        if (champion == null)
-        {
-            combat = FindFirstObjectByType<ChampionCombat>();
-            if (combat != null) champion = combat.GetComponent<Health>();
-        }
-        else
-        {
-            combat = champion.GetComponent<ChampionCombat>();
-        }
+        // Found by tag, not by ChampionCombat - a champion with no attack
+        // script still owns the HUD. combat may stay null, in which case the
+        // stat block just shows dashes.
+        if (champion == null) Bind();
+        else combat = champion.GetComponent<ChampionCombat>();
 
         Build();
         Refresh();
+    }
+
+    /// <summary>
+    /// Re-point the HUD at whoever currently holds the Player tag.
+    /// ChampionSelector calls this after handing control to another champion.
+    /// </summary>
+    public void Rebind()
+    {
+        Bind();
+        Refresh();
+    }
+
+    void Bind()
+    {
+        var go = GameObject.FindGameObjectWithTag(playerTag);
+        champion = go != null ? go.GetComponent<Health>() : null;
+        combat = champion != null ? champion.GetComponent<ChampionCombat>() : null;
     }
 
     void Update() => Refresh();
@@ -123,7 +139,7 @@ public class ChampionHud : MonoBehaviour
         RectTransform nameRow = Rect("Name", plate,
             new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
             new Vector2(barX, 40f), new Vector2(barW, 18f));
-        Text("Value", nameRow, championName, 14f, HudStyle.TextMuted, TextAlignmentOptions.Left);
+        nameLabel = Text("Value", nameRow, championName, 14f, HudStyle.TextMuted, TextAlignmentOptions.Left);
 
         hpFill = BuildBar(plate, new Vector2(barX, 14f), new Vector2(barW, 26f),
                           HudStyle.HealthAlly, out hpLabel, out hpFillWidth);
@@ -178,6 +194,11 @@ public class ChampionHud : MonoBehaviour
 
     void Refresh()
     {
+        // the plate names whoever is being driven right now - with more than
+        // one champion in the scene this is how you tell them apart at a glance
+        if (nameLabel != null)
+            nameLabel.text = champion != null ? champion.gameObject.name.ToUpperInvariant() : championName;
+
         if (champion != null)
         {
             float pct = champion.Max <= 0f ? 0f : Mathf.Clamp01(champion.Current / champion.Max);

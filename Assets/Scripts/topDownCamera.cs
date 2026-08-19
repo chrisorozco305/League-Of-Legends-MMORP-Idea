@@ -32,6 +32,12 @@ public class MobaCamera : MonoBehaviour
     [Header("Follow")]
     [SerializeField] float followSmooth = 0.09f;
 
+    [Header("Keys")]
+    [Tooltip("Tap to recentre on the champion, hold to keep following.")]
+    [SerializeField] Key centerKey = Key.Space;
+    [Tooltip("Toggles permanent camera lock to the champion.")]
+    [SerializeField] Key lockKey = Key.Y;
+
     [Header("Bounds (x = world X, y = world Z)")]
     [SerializeField] bool useBounds = true;
     [SerializeField] Rect bounds = new Rect(-60f, -60f, 120f, 120f);
@@ -51,9 +57,10 @@ public class MobaCamera : MonoBehaviour
     void LateUpdate()
     {
         HandleLockInput();
+        HandleCenterInput();
         HandleZoom();
 
-        bool centering = locked || (Keyboard.current != null && Keyboard.current.spaceKey.isPressed);
+        bool centering = locked || (Keyboard.current != null && Keyboard.current[centerKey].isPressed);
         if (centering && target) FollowTarget();
         else Pan();
 
@@ -65,8 +72,25 @@ public class MobaCamera : MonoBehaviour
 
     void HandleLockInput()
     {
-        if (Keyboard.current != null && Keyboard.current.yKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current[lockKey].wasPressedThisFrame)
             locked = !locked;
+    }
+
+    /// <summary>
+    /// Space centres on the champion, League-style: snap on the press, then
+    /// keep following for as long as it's held.
+    ///
+    /// The press matters on its own. Holding already fed FollowTarget(), but
+    /// that SmoothDamps over followSmooth - so a quick tap advanced the ease by
+    /// a single frame and looked like nothing happened. Snapping first makes
+    /// the tap read as an instant recentre and leaves the hold unchanged.
+    /// </summary>
+    void HandleCenterInput()
+    {
+        if (Keyboard.current == null || !target) return;
+        if (!Keyboard.current[centerKey].wasPressedThisFrame) return;
+
+        SnapToTarget();
     }
 
     void HandleZoom()
@@ -169,7 +193,8 @@ public class MobaCamera : MonoBehaviour
     {
         if (!target) return;
         focus = Flatten(target.position);
-        followVel = Vector3.zero;
+        followVel = Vector3.zero;   // kill any in-flight SmoothDamp velocity
+        ClampFocus();               // a champion outside bounds must not drag the camera out
         ApplyTransform();
     }
 

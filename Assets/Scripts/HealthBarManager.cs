@@ -51,8 +51,11 @@ public class HealthBarManager : MonoBehaviour
         {
             if (h == null || !h.IsAlive) continue;
 
-            // the champion is the one that can shoot back - everything else is a foe
-            bool isChampion = h.GetComponent<ChampionCombat>() != null;
+            // Keyed off ChampionController, not the Player tag: the tag marks
+            // whoever is being *driven* right now, and a benched champion is
+            // still an ally - tagging off it would turn their bar red the
+            // moment you switched away.
+            bool isChampion = h.GetComponent<ChampionController>() != null;
 
             UnitHealthBar.Attach(
                 h,
