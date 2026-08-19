@@ -50,6 +50,8 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] string hitState = "GetHit";
     [SerializeField] string dieState = "Die";
     [SerializeField] float crossFade = 0.1f;
+    [Tooltip("Minimum seconds between flinches, so damage-over-time can't spam GetHit.")]
+    [SerializeField] float flinchCooldown = 0.8f;
 
     Health self;
     Health target;
@@ -62,6 +64,7 @@ public class EnemyAI : MonoBehaviour
     float attackTimer;
     bool damageApplied;
     float retargetTimer;
+    float nextFlinchTime;
     bool dead;
 
     void Awake()
@@ -274,6 +277,13 @@ public class EnemyAI : MonoBehaviour
     {
         // don't let a flinch cancel a committed swing
         if (dead || attackTimer > 0f) return;
+
+        // Rate-limit the flinch. A burn ticks twice a second, and replaying
+        // GetHit on every tick leaves the monster twitching in place for the
+        // whole duration instead of fighting.
+        if (Time.time < nextFlinchTime) return;
+        nextFlinchTime = Time.time + flinchCooldown;
+
         Play(hitState, force: true);
     }
 

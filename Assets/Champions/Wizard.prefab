@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6075482594158022535}
   - component: {fileID: 8027043007705929974}
   - component: {fileID: 5189890102043228348}
+  - component: {fileID: 7122601124697009551}
   m_Layer: 0
   m_Name: Wizard
   m_TagString: Player
@@ -34,7 +35,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1688688236150703185}
+  - {fileID: 1301461418416589340}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &244772611967354617
@@ -125,13 +126,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a26f67a4796e4a04eac2d03d5bd25d95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChampionAnimator
+  idleState: Idle
   walkState: Walk
-  idleState: 
+  attackState: CastAttack
+  attackDuration: 1.47
+  movementCancelsAttack: 1
   moveThreshold: 0.1
   matchSpeedToVelocity: 1
   referenceSpeed: 3.5
   crossFade: 0.12
---- !u!1001 &1217612909934912442
+--- !u!114 &7122601124697009551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367368539515408334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6674ed0d555268b4ea4f030b07bc6417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChampionCombat
+  attackRange: 9
+  attacksPerSecond: 0.65
+  damage: 22
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  projectileSpeed: 24
+  projectileColor: {r: 0.6, g: 0.45, b: 0.95, a: 1}
+  muzzle: {fileID: 1212518031661924086}
+  projectileVisual: {fileID: 4851109652881447187, guid: 2df8be96452156c4294b686343e5a1d8, type: 3}
+  toggleRangeKey: 15
+  rangeColor: {r: 0.62, g: 0.88, b: 1, a: 0.95}
+  burnDuration: 3
+  burnDamage: 12
+  burnTickInterval: 0.5
+  castReleaseTime: 0.9
+  releaseWithoutEvent: 1
+  turnSpeed: 20
+  cam: {fileID: 0}
+  targetPickRange: 500
+--- !u!1001 &1550647015772630519
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -139,76 +175,84 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5708246513502903477}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - target: {fileID: 919132149155446097, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       propertyPath: m_Name
-      value: Wizard_Walk
+      value: Wizard
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3861862220363086138}
-  m_SourcePrefab: {fileID: 100100000, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
---- !u!4 &1688688236150703185 stripped
+      addedObject: {fileID: 4690314883829809138}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2010236040088997492}
+  m_SourcePrefab: {fileID: 100100000, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
+--- !u!4 &1212518031661924086 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
-  m_PrefabInstance: {fileID: 1217612909934912442}
+  m_CorrespondingSourceObject: {fileID: -8838671030108859647, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
+  m_PrefabInstance: {fileID: 1550647015772630519}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2027954280510824171 stripped
+--- !u!4 &1301461418416589340 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
+  m_PrefabInstance: {fileID: 1550647015772630519}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1820695525727965350 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 196c1862de8f3d948aba2a76d13fe0f5, type: 3}
-  m_PrefabInstance: {fileID: 1217612909934912442}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e8ff91b0631501742ab8c8969cb929fc, type: 3}
+  m_PrefabInstance: {fileID: 1550647015772630519}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &3861862220363086138
+--- !u!95 &4690314883829809138
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2027954280510824171}
+  m_GameObject: {fileID: 1820695525727965350}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 9a16c771be912d441b8eb5475776df2b, type: 2}
@@ -223,3 +267,15 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2010236040088997492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820695525727965350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1982c16126b991440b125502c9bc0dfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimationEventRelay

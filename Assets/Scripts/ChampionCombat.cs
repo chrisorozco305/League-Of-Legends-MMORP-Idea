@@ -21,10 +21,26 @@ public class ChampionCombat : MonoBehaviour
     [SerializeField] float projectileSpeed = 28f;
     [SerializeField] Color projectileColor = new Color(1f, 0.85f, 0.3f);
     [SerializeField] Transform muzzle;
+    [Tooltip("Optional mesh for the bolt (e.g. Fireball). Falls back to a coloured sphere when empty.")]
+    [SerializeField] GameObject projectileVisual;
 
     [Header("Range Ring")]
     [SerializeField] Key toggleRangeKey = Key.A;
     [SerializeField] Color rangeColor = new Color(0.62f, 0.88f, 1f, 0.95f);   // light blue
+
+    [Header("Burn (passive - 0 duration disables)")]
+    [Tooltip("Seconds the target burns after being hit.")]
+    [SerializeField] float burnDuration = 0f;
+    [Tooltip("Total damage dealt across the whole burn, not per tick.")]
+    [SerializeField] float burnDamage = 0f;
+    [Tooltip("Seconds between burn ticks.")]
+    [SerializeField] float burnTickInterval = 0.5f;
+
+    [Header("Cast Timing")]
+    [Tooltip("Seconds into the attack animation before the bolt leaves. Only used as a fallback - a CastRelease animation event on the clip takes priority and is more accurate.")]
+    [SerializeField] float castReleaseTime = 0.9f;
+    [Tooltip("Release on the timer above if the animation event never arrives. Turn off only if you are certain every attack clip has a CastRelease event.")]
+    [SerializeField] bool releaseWithoutEvent = true;
 
     [Header("Facing")]
     [SerializeField] float turnSpeed = 20f;
@@ -32,6 +48,10 @@ public class ChampionCombat : MonoBehaviour
     [Header("Targeting")]
     [SerializeField] Camera cam;
     [SerializeField] float targetPickRange = 500f;
+
+    Transform pendingTarget;
+    bool shotPending;
+    float releaseTimer;
 
     NavMeshAgent agent;
     RangeIndicator ring;
@@ -47,6 +67,13 @@ public class ChampionCombat : MonoBehaviour
     public float AttacksPerSecond => attacksPerSecond;
     public Transform Target => target;
     public bool IsArmed => armed;
+
+    /// <summary>
+    /// Raised the moment a shot leaves the muzzle. ChampionAnimator listens so
+    /// the cast animation fires on the actual shot rather than being guessed
+    /// from the cooldown, which would drift as attack speed changes.
+    /// </summary>
+    public event System.Action OnAttack;
 
     void Awake()
     {
@@ -68,6 +95,7 @@ public class ChampionCombat : MonoBehaviour
     {
         cooldown -= Time.deltaTime;
 
+        TickPendingShot();
         HandleToggle();
         HandleArmedClick();
 
@@ -95,7 +123,22 @@ public class ChampionCombat : MonoBehaviour
     public void CancelOrders()
     {
         target = null;
+
+        // Moving cancels a wind-up outright, as in League. Without this the
+        // fallback timer would still release a bolt ~0.9s later from a
+        // champion who visibly walked out of the cast - a shot with no
+        // animation behind it.
+        CancelPendingShot();
+
         if (armed) SetArmed(false);
+    }
+
+    /// <summary>Drops a held shot so it can never release. Deliberate, not an interrupt.</summary>
+    void CancelPendingShot()
+    {
+        shotPending = false;
+        pendingTarget = null;
+        releaseTimer = 0f;
     }
 
     // ---------- input while armed ----------
@@ -136,6 +179,8 @@ public class ChampionCombat : MonoBehaviour
 
         // 3. nothing to attack - attack-move to the clicked point, still red
         target = null;
+        CancelPendingShot();   // this is a move order too, so a held shot dies with it
+
         if (haveClickPoint)
         {
             if (TryMoveToPoint(clickPoint))
@@ -238,13 +283,65 @@ public class ChampionCombat : MonoBehaviour
             transform.rotation, Quaternion.LookRotation(dir), turnSpeed * Time.deltaTime);
     }
 
+    /// <summary>
+    /// Begins the attack: starts the animation and holds the shot until the
+    /// cast actually releases. The bolt is NOT spawned here - see
+    /// ReleaseProjectile().
+    /// </summary>
     void Fire()
     {
+        // an attack starting while one is still held means attack speed has
+        // outrun the cast animation - let the old shot go rather than eat it
+        if (shotPending) ReleaseProjectile();
+
+        pendingTarget = target;
+        shotPending = true;
+        releaseTimer = castReleaseTime;
+
+        OnAttack?.Invoke();
+    }
+
+    /// <summary>
+    /// Spawns the bolt. Called by the CastAttack animation event (via
+    /// AnimationEventRelay) at the frame the staff orb discharges, so the
+    /// projectile leaves exactly when the visual says it should.
+    ///
+    /// Public because animation events reach it from outside; safe to call
+    /// twice, the pending flag makes the second call a no-op.
+    /// </summary>
+    public void ReleaseProjectile()
+    {
+        if (!shotPending) return;
+        shotPending = false;
+
+        // target may have died or been swapped during the wind-up
+        if (pendingTarget == null) return;
+
+        var h = pendingTarget.GetComponent<Health>();
+        if (h == null || !h.IsAlive) return;
+
         Vector3 origin = muzzle
             ? muzzle.position
             : transform.position + Vector3.up * 1.1f + transform.forward * 0.4f;
 
-        Projectile.Spawn(origin, target, projectileSpeed, damage, projectileColor);
+        Projectile.Spawn(origin, pendingTarget, projectileSpeed, damage, projectileColor,
+                         visualPrefab: projectileVisual,
+                         burnDuration: burnDuration,
+                         burnDamage: burnDamage,
+                         burnTickInterval: burnTickInterval);
+    }
+
+    /// <summary>
+    /// Backstop for the animation event. If the clip has no CastRelease event -
+    /// or the event was lost in a re-import from Blender - the shot would
+    /// otherwise never leave. Fires on a timer instead so combat still works.
+    /// </summary>
+    void TickPendingShot()
+    {
+        if (!shotPending || !releaseWithoutEvent) return;
+
+        releaseTimer -= Time.deltaTime;
+        if (releaseTimer <= 0f) ReleaseProjectile();
     }
 
     // ---------- public API ----------
