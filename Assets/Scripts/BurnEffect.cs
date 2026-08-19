@@ -28,6 +28,9 @@ public class BurnEffect : MonoBehaviour
     int colorProperty;
 
     Light glow;
+    FlameParticles flames;
+    float bodyRadius = 0.5f;
+    float bodyHeight = 1.5f;
     float remaining;
     float damagePerSecond;
     float tickInterval = 0.5f;
@@ -60,6 +63,7 @@ public class BurnEffect : MonoBehaviour
 
         if (renderers == null) CaptureRenderers();
         if (glow == null) CreateGlow();
+        if (flames == null) flames = FlameParticles.Create(transform, bodyRadius, bodyHeight);
     }
 
     void CaptureRenderers()
@@ -68,6 +72,22 @@ public class BurnEffect : MonoBehaviour
         mpb = new MaterialPropertyBlock();
         originalColors = new Color[renderers.Length];
         phase = Random.Range(0f, 100f);
+
+        // Measure the body so a Slime and a TurtleShell get plumes in
+        // proportion, rather than one fixed size that swamps the small one.
+        bool haveBounds = false;
+        Bounds b = new Bounds(transform.position, Vector3.zero);
+        foreach (var r in renderers)
+        {
+            if (r == null) continue;
+            if (!haveBounds) { b = r.bounds; haveBounds = true; }
+            else b.Encapsulate(r.bounds);
+        }
+        if (haveBounds)
+        {
+            bodyHeight = Mathf.Max(0.4f, b.size.y);
+            bodyRadius = Mathf.Max(0.25f, Mathf.Max(b.extents.x, b.extents.z));
+        }
 
         // URP Lit uses _BaseColor, built-in shaders use _Color. Decide once
         // rather than probing every frame.
@@ -147,11 +167,16 @@ public class BurnEffect : MonoBehaviour
         }
 
         if (glow != null) Destroy(glow.gameObject);
+
+        // let the last particles burn out instead of vanishing mid-plume
+        if (flames != null) { flames.StopAndFade(); flames = null; }
+
         Destroy(this);
     }
 
     void OnDestroy()
     {
         if (glow != null) Destroy(glow.gameObject);
+        if (flames != null) flames.StopAndFade();
     }
 }
