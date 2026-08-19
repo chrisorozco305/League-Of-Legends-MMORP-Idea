@@ -159,6 +159,8 @@ MonoBehaviour:
   projectileVisual: {fileID: 4851109652881447187, guid: 2df8be96452156c4294b686343e5a1d8, type: 3}
   toggleRangeKey: 15
   rangeColor: {r: 0.62, g: 0.88, b: 1, a: 0.95}
+  castSound: {fileID: 8300000, guid: 738396c67de50514db75cdb46d45d6e1, type: 3}
+  castVolume: 0.75
   burnDuration: 3
   burnDamage: 12
   burnTickInterval: 0.5

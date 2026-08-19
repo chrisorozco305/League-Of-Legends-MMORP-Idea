@@ -28,6 +28,11 @@ public class ChampionCombat : MonoBehaviour
     [SerializeField] Key toggleRangeKey = Key.A;
     [SerializeField] Color rangeColor = new Color(0.62f, 0.88f, 1f, 0.95f);   // light blue
 
+    [Header("Audio")]
+    [Tooltip("Played when the bolt actually leaves, not when the cast begins.")]
+    [SerializeField] AudioClip castSound;
+    [SerializeField, Range(0f, 1f)] float castVolume = 0.75f;
+
     [Header("Burn (passive - 0 duration disables)")]
     [Tooltip("Seconds the target burns after being hit.")]
     [SerializeField] float burnDuration = 0f;
@@ -323,6 +328,8 @@ public class ChampionCombat : MonoBehaviour
         Vector3 origin = muzzle
             ? muzzle.position
             : transform.position + Vector3.up * 1.1f + transform.forward * 0.4f;
+
+        Sfx.PlayAt(castSound, origin, castVolume);
 
         Projectile.Spawn(origin, pendingTarget, projectileSpeed, damage, projectileColor,
                          visualPrefab: projectileVisual,
